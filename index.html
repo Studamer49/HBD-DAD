@@ -197,26 +197,52 @@
   .joke .a { margin-top: 10px; color: var(--gold-soft); font-weight: 600; font-size: 1.05rem; }
   .joke .emoji { font-size: 1.7rem; margin-bottom: 6px; }
 
-  .photo-frame { text-align: center; }
-
-  .photo-frame img {
-    width: 100%;
-    max-width: 620px;
-    border-radius: 24px;
-    border: 4px solid var(--gold-soft);
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
-    transform: rotate(-1deg);
-    transition: transform 0.6s ease;
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
   }
 
-  .photo-frame img:hover { transform: rotate(0deg) scale(1.015); }
+  .gallery img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 2px solid var(--glass-border);
+    cursor: zoom-in;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+
+  .gallery img:hover { transform: scale(1.04); border-color: var(--gold-soft); }
 
   .photo-caption {
-    margin-top: 16px;
+    margin-top: 20px;
+    text-align: center;
     font-style: italic;
     color: rgba(255, 247, 230, 0.8);
     font-family: "Segoe Script", cursive;
     font-size: 1.15rem;
+  }
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    background: rgba(8, 8, 26, 0.93);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+  }
+
+  .lightbox.open { display: flex; }
+
+  .lightbox img {
+    max-width: 92vw;
+    max-height: 88vh;
+    border-radius: 12px;
+    border: 3px solid var(--gold-soft);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
   }
 
   .video-wrap {
@@ -270,6 +296,79 @@
     color: var(--gold-soft);
   }
   .finale .emojis { margin-top: 26px; font-size: clamp(1.6rem, 5vw, 2.6rem); letter-spacing: 10px; }
+
+  .ad {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 20px 12vh;
+  }
+
+  .ad-ribbon {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(120deg, #ff5a5f, #ff8e53);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+
+  .ad-card {
+    background: linear-gradient(150deg, rgba(255, 90, 95, 0.12), rgba(255, 142, 83, 0.08), rgba(246, 196, 83, 0.12));
+    border: 1px solid rgba(255, 142, 83, 0.4);
+    border-radius: 28px;
+    padding: 40px 34px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4), inset 0 0 60px rgba(255, 142, 83, 0.12);
+    text-align: center;
+  }
+
+  .ad-card .ad-blurb { color: rgba(255, 247, 230, 0.85); margin-bottom: 26px; }
+
+  .ad-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+  }
+
+  .ad-tile {
+    display: block;
+    text-decoration: none;
+    background: rgba(23, 26, 56, 0.55);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 22px 18px;
+    text-align: left;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .ad-tile:hover {
+    transform: translateY(-4px);
+    border-color: var(--gold-soft);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .ad-tile .tile-emoji { font-size: 1.9rem; }
+  .ad-tile .tile-name { color: var(--gold-soft); font-weight: 700; font-size: 1.05rem; margin: 8px 0 4px; }
+  .ad-tile .tile-desc { color: rgba(255, 247, 230, 0.7); font-size: 0.85rem; }
+  .ad-tile .tile-link { color: var(--gold); font-size: 0.78rem; margin-top: 8px; word-break: break-all; }
+  .ad-tile .tile-cta {
+    display: inline-block;
+    margin-top: 12px;
+    background: linear-gradient(120deg, var(--gold), var(--gold-soft));
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+
+  .ad-footer { margin-top: 22px; font-size: 0.85rem; color: rgba(255, 247, 230, 0.6); }
+  .ad-footer a { color: var(--gold-soft); }
 
   .music-prompt {
     position: fixed;
@@ -370,6 +469,8 @@
 
 <div id="musicPrompt" class="music-prompt" role="status">🎵 Tap anywhere to start the birthday music</div>
 
+<div id="lightbox" class="lightbox"><img id="lightboxImg" alt="Expanded memory"></div>
+
 <div id="musicControl" class="music-control">
   <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.4" aria-label="Music volume">
   <button id="musicToggle" type="button" class="music-toggle is-playing" aria-pressed="true" aria-label="Pause music">
@@ -423,11 +524,36 @@
   </section>
 
   <section id="memories" class="reveal">
-    <div class="card photo-frame">
+    <div class="card">
       <span class="eyebrow">Captured forever</span>
       <h2>Photo Memories</h2>
-      <img src="Image/IMG_20260319_125345.jpg" alt="A precious memory of Dad">
-      <p class="photo-caption">A moment of you — one of many we treasure.</p>
+      <p class="subtitle">A walk through the years — tap any photo to view it closer.</p>
+      <div class="gallery">
+        <img src="Image/IMG_20220516_185324.jpg" alt="Memory from 2022" loading="lazy">
+        <img src="Image/IMG_20220516_201945.jpg" alt="Memory from 2022" loading="lazy">
+        <img src="Image/IMG_20220519_201730.jpg" alt="Memory from 2022" loading="lazy">
+        <img src="Image/IMG_20220603_194822.jpg" alt="Memory from 2022" loading="lazy">
+        <img src="Image/IMG_20220920_104544.jpg" alt="Memory from 2022" loading="lazy">
+        <img src="Image/IMG_20220929_174810.jpg" alt="Memory from 2022" loading="lazy">
+        <img src="Image/IMG_20220929_215247.jpg" alt="Memory from 2022" loading="lazy">
+        <img src="Image/IMG_20220930_164155.jpg" alt="Memory from 2022" loading="lazy">
+        <img src="Image/IMG_20221001_122304.jpg" alt="Memory from 2022" loading="lazy">
+        <img src="Image/IMG_20221115_145618.jpg" alt="Memory from 2022" loading="lazy">
+        <img src="Image/IMG_20230106_092242.jpg" alt="Memory from 2023" loading="lazy">
+        <img src="Image/Screenshot_2023-03-04-09-14-58-31_6012fa4d4ddec268fc5c7112cbb265e7.jpg" alt="Memory from 2023" loading="lazy">
+        <img src="Image/Screenshot_2023-03-04-09-15-08-12_6012fa4d4ddec268fc5c7112cbb265e7.jpg" alt="Memory from 2023" loading="lazy">
+        <img src="Image/IMG_20230618_143437.jpg" alt="Memory from 2023" loading="lazy">
+        <img src="Image/IMG_20230917_220747.jpg" alt="Memory from 2023" loading="lazy">
+        <img src="Image/IMG_20241214_204402.jpg" alt="Memory from 2024" loading="lazy">
+        <img src="Image/IMG_20241214_205120.jpg" alt="Memory from 2024" loading="lazy">
+        <img src="Image/IMG_20241215_104929.jpg" alt="Memory from 2024" loading="lazy">
+        <img src="Image/IMG_20250427_054752.jpg" alt="Memory from 2025" loading="lazy">
+        <img src="Image/IMG_20250428_162710.jpg" alt="Memory from 2025" loading="lazy">
+        <img src="Image/IMG_20250428_163309.jpg" alt="Memory from 2025" loading="lazy">
+        <img src="Image/IMG_20250428_164118.jpg" alt="Memory from 2025" loading="lazy">
+        <img src="Image/IMG_20260319_125345.jpg" alt="A precious memory of Dad" loading="lazy">
+      </div>
+      <p class="photo-caption">Moments of you — every one we treasure.</p>
     </div>
   </section>
 
@@ -457,6 +583,38 @@
     <h1>Happy Birthday, Dad!</h1>
     <p class="love">Thank you for being you — today and every day.</p>
     <div class="emojis">🎉🎂🎈🥂✨</div>
+  </section>
+
+  <section id="more" class="ad reveal">
+    <span class="ad-ribbon">⭐ Sponsored by Studamer49</span>
+    <div class="ad-card">
+      <h2>More from Studamer49 🚀</h2>
+      <p class="ad-blurb">Loved this little birthday site? The same creator builds games, worlds and web experiments — check out more projects below!</p>
+      <div class="ad-grid">
+        <a class="ad-tile" href="https://github.com/Studamer49/Era-Of-Empires" target="_blank" rel="noopener">
+          <div class="tile-emoji">👑</div>
+          <div class="tile-name">Era Of Empires</div>
+          <div class="tile-desc">A strategy empire-builder game built with JavaScript.</div>
+          <div class="tile-link">github.com/Studamer49/Era-Of-Empires</div>
+          <span class="tile-cta">Visit →</span>
+        </a>
+        <a class="ad-tile" href="https://github.com/Studamer49/Dangro" target="_blank" rel="noopener">
+          <div class="tile-emoji">🐉</div>
+          <div class="tile-name">Dangro</div>
+          <div class="tile-desc">A TypeScript-powered adventure filled with dragons.</div>
+          <div class="tile-link">github.com/Studamer49/Dangro</div>
+          <span class="tile-cta">Visit →</span>
+        </a>
+        <a class="ad-tile" href="https://github.com/Studamer49/KOW-World" target="_blank" rel="noopener">
+          <div class="tile-emoji">🌍</div>
+          <div class="tile-name">KOW World</div>
+          <div class="tile-desc">An immersive world to explore, crafted with HTML.</div>
+          <div class="tile-link">github.com/Studamer49/KOW-World</div>
+          <span class="tile-cta">Visit →</span>
+        </a>
+      </div>
+      <p class="ad-footer">Made with 💛 by <a href="https://github.com/Studamer49" target="_blank" rel="noopener">Studamer49</a> · More projects on GitHub</p>
+    </div>
   </section>
 </main>
 
@@ -565,6 +723,25 @@
   slider.addEventListener('input', function () {
     userVolume = parseFloat(slider.value);
     applyVolume();
+  });
+
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var galleryImgs = document.querySelectorAll('.gallery img');
+  for (var g = 0; g < galleryImgs.length; g++) {
+    galleryImgs[g].addEventListener('click', function () {
+      lightboxImg.src = this.src;
+      lightboxImg.alt = this.alt;
+      lightbox.classList.add('open');
+    });
+  }
+  lightbox.addEventListener('click', function () {
+    lightbox.classList.remove('open');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && lightbox.classList.contains('open')) {
+      lightbox.classList.remove('open');
+    }
   });
 
   function videoHasAudio() {
